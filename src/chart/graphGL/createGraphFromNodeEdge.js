@@ -1,4 +1,4 @@
-import echarts from 'echarts/lib/echarts';
+import * as echarts from 'echarts/lib/echarts';
 import Graph from 'echarts/lib/data/Graph';
 import linkList from 'echarts/lib/data/helper/linkList';
 import retrieve from '../../util/retrieve';
@@ -30,8 +30,10 @@ export default function (nodes, edges, hostModel, directed, beforeLink) {
     var nodeData;
 
     // FIXME, support more coordinate systems.
-    var dimensionNames = echarts.helper.completeDimensions(
-        ['value'], nodes
+    var dimensionNames = echarts.helper.createDimensions(
+        nodes, {
+            coordDimensions: ['value']
+        }
     );
     nodeData = new echarts.List(dimensionNames, hostModel);
     nodeData.initData(nodes);

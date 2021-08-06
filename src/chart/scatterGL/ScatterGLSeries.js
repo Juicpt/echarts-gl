@@ -1,12 +1,14 @@
-import echarts from 'echarts/lib/echarts';
+import * as echarts from 'echarts/lib/echarts';
 
-echarts.extendSeriesModel({
+export default echarts.SeriesModel.extend({
 
     type: 'series.scatterGL',
 
     dependencies: ['grid', 'polar', 'geo', 'singleAxis'],
 
-    visualColorAccessPath: 'itemStyle.color',
+    visualStyleAccessPath: 'itemStyle',
+
+    hasSymbolVisual: true,
 
     getInitialData: function () {
         return echarts.helper.createList(this);

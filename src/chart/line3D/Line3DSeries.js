@@ -1,14 +1,15 @@
-import echarts from 'echarts/lib/echarts';
+import * as echarts from 'echarts/lib/echarts';
 import formatTooltip from '../common/formatTooltip';
 import createList from '../common/createList';
 
-var Line3DSeries = echarts.extendSeriesModel({
+var Line3DSeries = echarts.SeriesModel.extend({
 
     type: 'series.line3D',
 
     dependencies: ['grid3D'],
 
-    visualColorAccessPath: 'lineStyle.color',
+    visualStyleAccessPath: 'lineStyle',
+    visualDrawType: 'stroke',
 
     getInitialData: function (option, ecModel) {
         return createList(this);

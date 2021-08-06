@@ -1,4 +1,4 @@
-import echarts from 'echarts/lib/echarts';
+import * as echarts from 'echarts/lib/echarts';
 import graphicGL from '../../util/graphicGL';
 import retrieve from '../../util/retrieve';
 import ViewGL from '../../core/ViewGL';
@@ -7,7 +7,7 @@ import VectorFieldParticleSurface from './VectorFieldParticleSurface';
 
 
 // TODO 百度地图不是 linear 的
-echarts.extendChartView({
+export default echarts.ChartView.extend({
 
     type: 'flowGL',
 

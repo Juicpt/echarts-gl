@@ -1,7 +1,10 @@
-import echarts from 'echarts/lib/echarts';
+import * as echarts from 'echarts/lib/echarts';
 import ZRTextureAtlasSurface from '../../util/ZRTextureAtlasSurface';
 import LabelsMesh from '../../util/mesh/LabelsMesh';
 import retrieve from '../../util/retrieve';
+import { getItemVisualColor, getItemVisualOpacity } from '../../util/visual';
+
+import {createTextStyle} from 'echarts/lib/label/labelStyle';
 
 var LABEL_NORMAL_SHOW_BIT = 1;
 var LABEL_EMPHASIS_SHOW_BIT = 2;
@@ -123,7 +126,6 @@ LabelsBuilder.prototype.updateLabels = function (highlightDataIndices) {
         );
         var distance = labelModel.get('distance') || 0;
         var position = labelModel.get('position');
-        var textStyleModel = labelModel.getModel('textStyle');
 
         var dpr = this._api.getDevicePixelRatio();
         var text = seriesModel.getFormattedLabel(dataIndex, isEmphasis ? 'emphasis' : 'normal');
@@ -132,14 +134,16 @@ LabelsBuilder.prototype.updateLabels = function (highlightDataIndices) {
         }
 
         // TODO Background.
-        var textEl = new echarts.graphic.Text();
-        echarts.graphic.setTextStyle(textEl.style, textStyleModel, {
-            text: text,
-            textFill: textStyleModel.get('color') || data.getItemVisual(dataIndex, 'color') || '#000',
-            textAlign: 'left',
-            textVerticalAlign: 'top',
-            opacity: retrieve.firstNotNull(textStyleModel.get('opacity'), data.getItemVisual(dataIndex, 'opacity'), 1)
+        var textEl = new echarts.graphic.Text({
+            style: createTextStyle(labelModel, {
+                text: text,
+                fill: labelModel.get('color') || getItemVisualColor(data, dataIndex) || '#000',
+                align: 'left',
+                verticalAlign: 'top',
+                opacity: retrieve.firstNotNull(labelModel.get('opacity'), getItemVisualOpacity(data, dataIndex), 1)
+            })
         });
+
         var rect = textEl.getBoundingRect();
         var lineHeight = 1.2;
         rect.height *= lineHeight;
@@ -168,5 +172,9 @@ LabelsBuilder.prototype.updateLabels = function (highlightDataIndices) {
     this._labelsMesh.geometry.convertToTypedArray();
     this._labelsMesh.geometry.dirty();
 };
+
+LabelsBuilder.prototype.dispose = function () {
+    this._labelTextureSurface.dispose();
+}
 
 export default LabelsBuilder;

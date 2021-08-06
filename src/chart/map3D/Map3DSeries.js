@@ -1,4 +1,4 @@
-import echarts from 'echarts/lib/echarts';
+import * as echarts from 'echarts/lib/echarts';
 import componentViewControlMixin from '../../component/common/componentViewControlMixin';
 import componentPostEffectMixin from '../../component/common/componentPostEffectMixin';
 import componentLightMixin from '../../component/common/componentLightMixin';
@@ -16,7 +16,7 @@ function transformPolygon(mapbox3DCoordSys, poly) {
     return newPoly;
 }
 
-var Map3DSeries = echarts.extendSeriesModel({
+var Map3DSeries = echarts.SeriesModel.extend({
 
     type: 'series.map3D',
 
@@ -24,7 +24,7 @@ var Map3DSeries = echarts.extendSeriesModel({
 
     coordinateSystem: null,
 
-    visualColorAccessPath: 'itemStyle.color',
+    visualStyleAccessPath: 'itemStyle',
 
     optionUpdated: function (newOpt) {
         newOpt = newOpt || {};
@@ -33,7 +33,7 @@ var Map3DSeries = echarts.extendSeriesModel({
             return;
         }
 
-        if (__DEV__) {
+        if (process.env.NODE_ENV !== 'production') {
             var propsNeedToCheck = [
                 'left', 'top', 'width', 'height',
                 'boxWidth', 'boxDepth', 'boxHeight',
@@ -66,7 +66,9 @@ var Map3DSeries = echarts.extendSeriesModel({
     getInitialData: function (option) {
         option.data = this.getFilledRegions(option.data, option.map);
 
-        var dimensions = echarts.helper.completeDimensions(['value'], option.data);
+        var dimensions = echarts.helper.createDimensions(option.data, {
+            coordDimensions: ['value']
+        });
         var list = new echarts.List(dimensions, this);
         list.initData(option.data);
 

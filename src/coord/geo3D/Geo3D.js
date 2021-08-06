@@ -1,4 +1,4 @@
-import echarts from 'echarts/lib/echarts';
+import * as echarts from 'echarts/lib/echarts';
 import glmatrix from 'claygl/src/dep/glmatrix';
 var vec3 = glmatrix.vec3;
 var mat4 = glmatrix.mat4;
@@ -62,7 +62,7 @@ Geo3D.prototype = {
 
             regionsMap[regionName] = regions[i];
             // Add geoJson
-            this.addGeoCoord(regionName, regions[i].center);
+            this.addGeoCoord(regionName, regions[i].getCenter());
 
             // Some area like Alaska in USA map needs to be tansformed
             // to look better

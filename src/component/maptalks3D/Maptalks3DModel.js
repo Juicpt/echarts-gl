@@ -1,11 +1,11 @@
-import echarts from 'echarts/lib/echarts';
+import * as echarts from 'echarts/lib/echarts';
 
 import componentPostEffectMixin from '../common/componentPostEffectMixin';
 import componentLightMixin from '../common/componentLightMixin';
 
 var MAPTALKS_CAMERA_OPTION = ['zoom', 'center', 'pitch', 'bearing'];
 
-var Maptalks3DModel = echarts.extendComponentModel({
+var Maptalks3DModel = echarts.ComponentModel.extend({
 
     type: 'maptalks3D',
 

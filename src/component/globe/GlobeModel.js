@@ -1,4 +1,4 @@
-import echarts from 'echarts/lib/echarts';
+import * as echarts from 'echarts/lib/echarts';
 import componentViewControlMixin from '../common/componentViewControlMixin';
 import componentPostEffectMixin from '../common/componentPostEffectMixin';
 import componentLightMixin from '../common/componentLightMixin';
@@ -8,7 +8,7 @@ import componentShadingMixin from '../common/componentShadingMixin';
 function defaultId(option, idx) {
     option.id = option.id || option.name || (idx + '');
 }
-var GlobeModel = echarts.extendComponentModel({
+var GlobeModel = echarts.ComponentModel.extend({
 
     type: 'globe',
 
@@ -115,6 +115,15 @@ var GlobeModel = echarts.extendComponentModel({
                 // Time, default it will use system time
                 time: ''
             }
+        },
+
+        // atmosphere
+        atmosphere: {
+            show: false,
+            offset: 5,
+            color: '#ffffff',
+            glowPower: 6.0,
+            innerGlowPower: 2.0
         },
 
         // light

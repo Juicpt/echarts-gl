@@ -1,4 +1,4 @@
-import echarts from 'echarts/lib/echarts';
+import * as echarts from 'echarts/lib/echarts';
 import Maptalks3DLayer from './Maptalks3DLayer';
 import SceneHelper from '../common/SceneHelper';
 import graphicGL from '../../util/graphicGL';
@@ -7,7 +7,7 @@ import displayShadowGLSL from '../../util/shader/displayShadow.glsl.js';
 
 graphicGL.Shader.import(displayShadowGLSL);
 
-export default echarts.extendComponentView({
+export default echarts.ComponentView.extend({
 
     type: 'maptalks3D',
 

@@ -1,6 +1,6 @@
 import graphicGL from '../../util/graphicGL';
 import Skybox from 'claygl/src/plugin/Skybox';
-import echarts from 'echarts/lib/echarts';
+import * as echarts from 'echarts/lib/echarts';
 
 function SceneHelper() {
 }
@@ -138,7 +138,7 @@ SceneHelper.prototype = {
                     shape: { x: 0, y: 0, width: 16, height: 16 },
                     style: { fill: environmentUrl }
                 });
-                rect.brush(ctx);
+                echarts.innerDrawElementOnCanvas(ctx, rect);
 
                 skybox.attachScene(this._scene);
             }

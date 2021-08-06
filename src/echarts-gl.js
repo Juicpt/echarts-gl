@@ -27,40 +27,9 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * @module echarts-gl
- * @author Yi Shen(http://github.com/pissang)
- */
-
-// PENDING Use a single canvas as layer or use image element?
-var echartsGl = {
-    version: '1.1.2',
-    dependencies: {
-        echarts: '4.1.0',
-        claygl: '1.2.1'
-    }
-};
-import echarts from 'echarts/lib/echarts';
-import clayVersion from 'claygl/src/version';
+import * as echarts from 'echarts/lib/echarts';
 import LayerGL from './core/LayerGL';
 import backwardCompat from './preprocessor/backwardCompat';
-import graphicGL from './util/graphicGL';
-
-// Version checking
-var deps = echartsGl.dependencies;
-function versionTooOldMsg(name) {
-    throw new Error(
-        name + ' version is too old, needs ' + deps[name] + ' or higher'
-    );
-}
-function checkVersion(version, name) {
-    if ((version.replace('.', '') - 0) < (deps[name].replace('.', '') - 0)) {
-        versionTooOldMsg(name);
-    }
-    console.log('Loaded ' + name + ', version ' + version);
-}
-checkVersion(clayVersion, 'claygl');
-checkVersion(echarts.version, 'echarts');
 
 function EChartsGL (zr) {
     this._layers = {};
@@ -78,6 +47,9 @@ EChartsGL.prototype.update = function (ecModel, api) {
     }
 
     function getLayerGL(model) {
+        // Disable auto sleep in gl layer.
+        zr.setSleepAfterStill(0);
+
         var zlevel;
         // Host on coordinate system.
         if (model.coordinateSystem && model.coordinateSystem.model) {
@@ -195,10 +167,20 @@ EChartsGL.prototype.update = function (ecModel, api) {
 
 // Hack original getRenderedCanvas. Will removed after new echarts released
 // TODO
-var oldInit = echarts.init;
-echarts.init = function () {
-    var chart = oldInit.apply(this, arguments);
-    chart.getZr().painter.getRenderedCanvas = function (opts) {
+
+echarts.registerPostInit(function (chart) {
+    var zr = chart.getZr();
+    var oldDispose = zr.painter.dispose;
+
+    zr.painter.dispose = function () {
+        this.eachOtherLayer(function (layer) {
+            if (layer instanceof LayerGL) {
+                layer.dispose();
+            }
+        });
+        oldDispose.call(this);
+    }
+    zr.painter.getRenderedCanvas = function (opts) {
         opts = opts || {};
         if (this._singleCanvas) {
             return this._layers[0].dom;
@@ -253,16 +235,14 @@ echarts.init = function () {
                 findAndDrawOtherLayer(zlevel, el.zlevel);
                 zlevel = el.zlevel;
             }
-            this._doPaintEl(el, layer, true, scope);
+            this._doPaintEl(el, layer, true, null, scope);
         }
 
         findAndDrawOtherLayer(zlevel, Infinity);
 
         return canvas;
     };
-    return chart;
-};
-
+});
 
 echarts.registerPostUpdate(function (ecModel, api) {
     var zr = api.getZr();
@@ -274,6 +254,5 @@ echarts.registerPostUpdate(function (ecModel, api) {
 
 echarts.registerPreprocessor(backwardCompat);
 
-echarts.graphicGL = graphicGL;
 
 export default EChartsGL;

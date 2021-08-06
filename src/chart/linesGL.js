@@ -1,8 +1,3 @@
-import echarts from 'echarts/lib/echarts';
-
-import './linesGL/LinesGLSeries';
-import './linesGL/LinesGLView';
-
-import opacityVisual from './common/opacityVisual';
-
-echarts.registerVisual(opacityVisual('linesGL'));
+import { use } from 'echarts/lib/echarts';
+import { install } from './linesGL/install';
+use(install);

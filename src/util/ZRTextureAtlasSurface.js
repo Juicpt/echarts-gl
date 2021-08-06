@@ -5,7 +5,7 @@
  */
 
 // TODO Expand.
-import echarts from 'echarts/lib/echarts';
+import * as echarts from 'echarts/lib/echarts';
 import Texture2D from 'claygl/src/Texture2D';
 
 function ZRTextureAtlasSurfaceNode(zr, offsetX, offsetY, width, height, gap, dpr) {
@@ -123,8 +123,8 @@ ZRTextureAtlasSurfaceNode.prototype = {
         }
 
         // Shift the el
-        el.position[0] += this.offsetX * this.dpr + x;
-        el.position[1] += this.offsetY * this.dpr + y;
+        el.x += this.offsetX * this.dpr + x;
+        el.y += this.offsetY * this.dpr + y;
 
         this._zr.add(el);
 
@@ -152,8 +152,10 @@ ZRTextureAtlasSurfaceNode.prototype = {
 
         var scaleX = spriteWidth / rect.width;
         var scaleY = spriteHeight / rect.height;
-        el.position = [-rect.x * scaleX, -rect.y * scaleY];
-        el.scale = [scaleX, scaleY];
+        el.x = -rect.x * scaleX;
+        el.y = -rect.y * scaleY;
+        el.scaleX = scaleX;
+        el.scaleY = scaleY;
         el.update();
     }
 }
@@ -288,7 +290,7 @@ ZRTextureAtlasSurface.prototype = {
         var offsetY = Math.floor(nodeLen * this._nodeWidth / maxSize) * this._nodeHeight;
         if (offsetY >= maxSize) {
             // Failed if image is too large.
-            if (__DEV__) {
+            if (process.env.NODE_ENV !== 'production') {
                 console.error('Too much labels. Some will be ignored.');
             }
             return;
@@ -318,7 +320,7 @@ ZRTextureAtlasSurface.prototype = {
 
     add: function (el, width, height) {
         if (this._coords[el.id]) {
-            if (__DEV__) {
+            if (process.env.NODE_ENV !== 'production') {
                 console.warn('Element already been add');
             }
             return this._coords[el.id];
@@ -354,6 +356,10 @@ ZRTextureAtlasSurface.prototype = {
      */
     getCoords: function (id) {
         return this._coords[id];
+    },
+
+    dispose: function () {
+        this._zr.dispose();
     }
 };
 

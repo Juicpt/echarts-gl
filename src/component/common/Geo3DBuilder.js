@@ -1,4 +1,4 @@
-import echarts from 'echarts/lib/echarts';
+import * as echarts from 'echarts/lib/echarts';
 import graphicGL from '../../util/graphicGL';
 import earcut from '../../util/earcut';
 import LinesGeo from '../../util/geometry/Lines3D';
@@ -7,6 +7,7 @@ import glmatrix from 'claygl/src/dep/glmatrix';
 import trianglesSortMixin from '../../util/geometry/trianglesSortMixin';
 import LabelsBuilder from './LabelsBuilder';
 import lines3DGLSL from '../../util/shader/lines3D.glsl.js';
+import { getItemVisualColor, getItemVisualOpacity } from '../../util/visual';
 
 var vec3 = glmatrix.vec3;
 
@@ -19,7 +20,9 @@ function Geo3DBuilder(api) {
     // Cache triangulation result
     this._triangulationResults = {};
 
-    this._shadersMap = graphicGL.COMMON_SHADERS.reduce(function (obj, shaderName) {
+    this._shadersMap = graphicGL.COMMON_SHADERS.filter(function (shaderName) {
+        return shaderName !== 'shadow';
+    }).reduce(function (obj, shaderName) {
         obj[shaderName] = graphicGL.createShader('ecgl.' + shaderName);
         return obj;
     }, {});
@@ -104,7 +107,7 @@ Geo3DBuilder.prototype = {
                 if (!region) {
                     return [NaN, NaN, NaN];
                 }
-                center = region.center;
+                center = region.getCenter();
                 var pos = coordSys.dataToPoint([center[0], center[1], height]);
                 return pos;
             }
@@ -150,7 +153,7 @@ Geo3DBuilder.prototype = {
                 // Render normal in normal pass
                 renderNormal: true
             });
-            echarts.util.extend(mesh.geometry, trianglesSortMixin);
+            Object.assign(mesh.geometry, trianglesSortMixin);
             return mesh;
         }
 
@@ -183,7 +186,7 @@ Geo3DBuilder.prototype = {
     _getShader: function (shading) {
         var shader = this._shadersMap[shading];
         if (!shader) {
-            if (__DEV__) {
+            if (process.env.NODE_ENV !== 'production') {
                 console.warn('Unkown shading ' + shading);
             }
             // Default use lambert shader.
@@ -249,34 +252,30 @@ Geo3DBuilder.prototype = {
             // Get bunch of visual properties.
             var regionModel = componentModel.getRegionModel(dataIndex);
             var itemStyleModel = regionModel.getModel('itemStyle');
-            var color = itemStyleModel.get('color');
-            var opacity = retrieve.firstNotNull(itemStyleModel.get('opacity'), 1.0);
 
-            // Use visual color if it is encoded by visualMap component
-            var visualColor = data.getItemVisual(dataIndex, 'color', true);
-            if (visualColor != null && data.hasValue(dataIndex)) {
-                color = visualColor;
-            }
-            // Set color, opacity to visual for label usage.
-            data.setItemVisual(dataIndex, 'color', color);
-            data.setItemVisual(dataIndex, 'opacity', opacity);
+            var color = retrieve.firstNotNull(
+                getItemVisualColor(data, dataIndex),
+                itemStyleModel.get('color'),
+                '#fff'
+            );
+            var opacity = retrieve.firstNotNull(getItemVisualOpacity(data, dataIndex), 1);
 
-            color = graphicGL.parseColor(color);
-            var borderColor = graphicGL.parseColor(itemStyleModel.get('borderColor'));
+            var colorArr = graphicGL.parseColor(color);
+            var borderColorArr = graphicGL.parseColor(itemStyleModel.get('borderColor'));
 
-            color[3] *= opacity;
-            borderColor[3] *= opacity;
+            colorArr[3] *= opacity;
+            borderColorArr[3] *= opacity;
 
-            var isTransparent = color[3] < 0.99;
+            var isTransparent = colorArr[3] < 0.99;
 
-            polygonMesh.material.set('color', [1,1,1,1]);
+            polygonMesh.material.set('color', [1, 1, 1, 1]);
             hasTranparentRegion = hasTranparentRegion || isTransparent;
 
             var regionHeight = retrieve.firstNotNull(regionModel.get('height', true), componentModel.get('regionHeight'));
 
             var newOffsets = this._updatePolygonGeometry(
                 componentModel, polygonMesh.geometry, dataIndex, regionHeight,
-                vertexOffset, triangleOffset, color
+                vertexOffset, triangleOffset, colorArr
             );
 
             for (var i = vertexOffset; i < newOffsets.vertexOffset; i++) {
@@ -300,7 +299,7 @@ Geo3DBuilder.prototype = {
             }
             linesMesh.invisible = !hasLine;
             linesMesh.material.set({
-                color: borderColor
+                color: borderColorArr
             });
         }
 
@@ -377,7 +376,7 @@ Geo3DBuilder.prototype = {
         var shading = componentModel.get('shading');
         var material = this._groundMaterials[shading];
         if (!material) {
-            if (__DEV__) {
+            if (process.env.NODE_ENV !== 'production') {
                 console.warn('Unkown shading ' + shading);
             }
             material = this._groundMaterials.lambert;
@@ -711,19 +710,19 @@ Geo3DBuilder.prototype = {
         }
 
         var itemModel = data.getItemModel(dataIndex);
-        var emphasisItemStyleModel = itemModel.getModel('emphasis.itemStyle');
+        var emphasisItemStyleModel = itemModel.getModel(['emphasis', 'itemStyle']);
         var emphasisColor = emphasisItemStyleModel.get('color');
         var emphasisOpacity = retrieve.firstNotNull(
             emphasisItemStyleModel.get('opacity'),
-            data.getItemVisual(dataIndex, 'opacity'),
+            getItemVisualOpacity(data, dataIndex),
             1
         );
         if (emphasisColor == null) {
-            var color = data.getItemVisual(dataIndex, 'color');
+            var color = getItemVisualColor(data, dataIndex);
             emphasisColor = echarts.color.lift(color, -0.4);
         }
         if (emphasisOpacity == null) {
-            emphasisOpacity = data.getItemVisual(dataIndex, 'opacity');
+            emphasisOpacity = getItemVisualOpacity(data, dataIndex);
         }
         var colorArr = graphicGL.parseColor(emphasisColor);
         colorArr[3] *= emphasisOpacity;
@@ -738,13 +737,21 @@ Geo3DBuilder.prototype = {
             return;
         }
 
-        var color = data.getItemVisual(dataIndex, 'color');
-        var opacity = retrieve.firstNotNull(data.getItemVisual(dataIndex, 'opacity'), 1);
+        var color = retrieve.firstNotNull(
+            getItemVisualColor(data, dataIndex),
+            data.getItemModel(dataIndex).get(['itemStyle', 'color']),
+            '#fff'
+        );
+        var opacity = retrieve.firstNotNull(getItemVisualOpacity(data, dataIndex), 1);
 
         var colorArr = graphicGL.parseColor(color);
         colorArr[3] *= opacity;
 
         this._setColorOfDataIndex(data, dataIndex, colorArr);
+    },
+
+    dispose: function () {
+        this._labelsBuilder.dispose();
     },
 
     _setColorOfDataIndex: function (data, dataIndex, colorArr) {

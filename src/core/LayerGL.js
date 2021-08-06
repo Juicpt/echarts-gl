@@ -9,12 +9,9 @@
  *    (renderer) (renderer)
  *      /     \
  *  ViewGL   ViewGL
- *
- * @module echarts-gl/core/LayerGL
- * @author Yi Shen(http://github.com/pissang)
  */
 
-import echarts from 'echarts/lib/echarts';
+import * as echarts from 'echarts/lib/echarts';
 import Renderer from 'claygl/src/Renderer';
 import RayPicking from 'claygl/src/picking/RayPicking';
 import Texture from 'claygl/src/Texture';
@@ -103,7 +100,11 @@ var LayerGL = function (id, zr) {
     });
 
     this._backgroundColor = null;
+
+    this._disposed = false;
 };
+
+LayerGL.prototype.setUnpainted = function () {};
 
 /**
  * @param {module:echarts-gl/core/ViewGL} view
@@ -417,10 +418,18 @@ function collectResources(scene, textureResourceList, geometryResourceList) {
  * Dispose the layer
  */
 LayerGL.prototype.dispose = function () {
+    if (this._disposed) {
+        return;
+    }
     this._stopAccumulating();
-    this.renderer.disposeScene(this.scene);
-
+    if (this._textureList) {
+        markUnused(this._textureList);
+        markUnused(this._geometriesList);
+        checkAndDispose(this.renderer, this._textureList);
+        checkAndDispose(this.renderer, this._geometriesList);
+    }
     this.zr.off('globalout', this.onglobalout);
+    this._disposed = true;
 };
 
 // Event handlers
@@ -608,18 +617,20 @@ LayerGL.prototype._dispatchDataEvent = function (eveName, originalEvent, newEven
     var elChangedInMouseMove = false;
 
     var eventProxy = this._zrEventProxy;
-    eventProxy.position = [originalEvent.offsetX, originalEvent.offsetY];
+    eventProxy.x = originalEvent.offsetX;
+    eventProxy.y = originalEvent.offsetY;
     eventProxy.update();
 
     var targetInfo = {
         target: eventProxy
     };
+    const ecData = echarts.helper.getECData(eventProxy);
     if (eveName === 'mousemove') {
         if (dataIndex != null) {
             if (dataIndex !== this._lastDataIndex) {
                 if (parseInt(this._lastDataIndex, 10) >= 0) {
-                    eventProxy.dataIndex = this._lastDataIndex;
-                    eventProxy.seriesIndex = this._lastSeriesIndex;
+                    ecData.dataIndex = this._lastDataIndex;
+                    ecData.seriesIndex = this._lastSeriesIndex;
                     // FIXME May cause double events.
                     this.zr.handler.dispatchToElement(targetInfo, 'mouseout', originalEvent);
                 }
@@ -629,7 +640,7 @@ LayerGL.prototype._dispatchDataEvent = function (eveName, originalEvent, newEven
         else if (eventData != null) {
             if (eventData !== this._lastEventData) {
                 if (this._lastEventData != null) {
-                    eventProxy.eventData = this._lastEventData;
+                    ecData.eventData = this._lastEventData;
                     // FIXME May cause double events.
                     this.zr.handler.dispatchToElement(targetInfo, 'mouseout', originalEvent);
                 }
@@ -641,9 +652,9 @@ LayerGL.prototype._dispatchDataEvent = function (eveName, originalEvent, newEven
         this._lastSeriesIndex = seriesIndex;
     }
 
-    eventProxy.eventData = eventData;
-    eventProxy.dataIndex = dataIndex;
-    eventProxy.seriesIndex = seriesIndex;
+    ecData.eventData = eventData;
+    ecData.dataIndex = dataIndex;
+    ecData.seriesIndex = seriesIndex;
 
     if (eventData != null || (parseInt(dataIndex, 10) >= 0 && parseInt(seriesIndex, 10) >= 0)) {
         this.zr.handler.dispatchToElement(targetInfo, eveName, originalEvent);
@@ -662,6 +673,6 @@ LayerGL.prototype._dispatchToView = function (eventName, e) {
     }
 };
 
-echarts.util.extend(LayerGL.prototype, notifier);
+Object.assign(LayerGL.prototype, notifier);
 
 export default LayerGL;

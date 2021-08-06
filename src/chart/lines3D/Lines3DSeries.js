@@ -1,12 +1,13 @@
-import echarts from 'echarts/lib/echarts';
+import * as echarts from 'echarts/lib/echarts';
 
-echarts.extendSeriesModel({
+export default echarts.SeriesModel.extend({
 
     type: 'series.lines3D',
 
     dependencies: ['globe'],
 
-    visualColorAccessPath: 'lineStyle.color',
+    visualStyleAccessPath: 'lineStyle',
+    visualDrawType: 'stroke',
 
     getInitialData: function (option, ecModel) {
         var lineData = new echarts.List(['value'], this);

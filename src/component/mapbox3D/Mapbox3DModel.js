@@ -1,11 +1,11 @@
-import echarts from 'echarts/lib/echarts';
+import * as echarts from 'echarts/lib/echarts';
 
 import componentPostEffectMixin from '../common/componentPostEffectMixin';
 import componentLightMixin from '../common/componentLightMixin';
 
 var MAPBOX_CAMERA_OPTION = ['zoom', 'center', 'pitch', 'bearing'];
 
-var Mapbox3DModel = echarts.extendComponentModel({
+var Mapbox3DModel = echarts.ComponentModel.extend({
 
     type: 'mapbox3D',
 

@@ -553,6 +553,14 @@ export default {
                 'texture': 'source',
                 'bloom' : 'bloom_composite'
             },
+            'outputs': {
+                'color': {
+                    'parameters': {
+                        'width': 'expr(width * 1.0)',
+                        'height': 'expr(height * 1.0)'
+                    }
+                }
+            },
             'defines': {
                 // Images are all premultiplied alpha before composite because of blending.
                 // 'PREMULTIPLY_ALPHA': null,

@@ -1,16 +1,16 @@
-import echarts from 'echarts/lib/echarts';
+import * as echarts from 'echarts/lib/echarts';
 import componentShadingMixin from '../../component/common/componentShadingMixin';
 import formatUtil from '../../util/format';
 import formatTooltip from '../common/formatTooltip';
 import createList from '../common/createList';
 
-var Bar3DSeries = echarts.extendSeriesModel({
+var Bar3DSeries = echarts.SeriesModel.extend({
 
     type: 'series.bar3D',
 
     dependencies: ['globe'],
 
-    visualColorAccessPath: 'itemStyle.color',
+    visualStyleAccessPathvisu: 'itemStyle',
 
     getInitialData: function (option, ecModel) {
         return createList(this);

@@ -1,24 +1,28 @@
-import echarts from 'echarts/lib/echarts';
+import * as echarts from 'echarts/lib/echarts';
 
-echarts.extendSeriesModel({
+export default echarts.SeriesModel.extend({
 
     type: 'series.flowGL',
 
     dependencies: ['geo', 'grid', 'bmap'],
 
-    visualColorAccessPath: 'itemStyle.color',
+    visualStyleAccessPath: 'itemStyle',
 
     getInitialData: function (option, ecModel) {
-        var coordSysDimensions = echarts.getCoordinateSystemDimensions(this.get('coordinateSystem')) || ['x', 'y'];
-        if (__DEV__) {
+        var coordType = this.get('coordinateSystem');
+        // TODO hotfix for the bug in echarts that get coord dimensions is undefined.
+        var coordSysDimensions = coordType === 'geo' ? ['lng', 'lat']
+            : (echarts.getCoordinateSystemDimensions(coordType) || ['x', 'y']);
+        if (process.env.NODE_ENV !== 'production') {
             if (coordSysDimensions.length > 2) {
-                throw new Error('flowGL can only be used on 2d coordinate systems.')
+                throw new Error('flowGL can only be used on 2d coordinate systems.');
             }
         }
         coordSysDimensions.push('vx', 'vy');
-        var dimensions = echarts.helper.completeDimensions(coordSysDimensions, this.getSource(), {
-            encodeDef: this.get('encode'),
-            dimsDef: this.get('dimensions')
+        var dimensions = echarts.helper.createDimensions(this.getSource(), {
+            coordDimensions: coordSysDimensions,
+            encodeDefine: this.get('encode'),
+            dimensionsDefine: this.get('dimensions')
         });
         var data = new echarts.List(dimensions, this);
         data.initData(this.getSource());

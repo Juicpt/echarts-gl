@@ -1,4 +1,4 @@
-import echarts from 'echarts/lib/echarts';
+import * as echarts from 'echarts/lib/echarts';
 import glmatrix from 'claygl/src/dep/glmatrix';
 var vec3 = glmatrix.vec3;
 var vec2 = glmatrix.vec2;
@@ -106,7 +106,7 @@ function prepareCoords(data) {
         var coords = (itemModel.option instanceof Array) ?
             itemModel.option : itemModel.getShallow('coords', true);
 
-        if (__DEV__) {
+        if (process.env.NODE_ENV !== 'production') {
             if (!(coords instanceof Array && coords.length > 0 && coords[0] instanceof Array)) {
                 throw new Error('Invalid coords ' + JSON.stringify(coords) + '. Lines must have 2d coords array in data item.');
             }
@@ -150,7 +150,7 @@ function layoutOnPlane(seriesModel, coordSys, normal) {
     });
 }
 
-echarts.registerLayout(function (ecModel, api) {
+export default function lines3DLayout(ecModel, api) {
     ecModel.eachSeriesByType('lines3D', function (seriesModel) {
         var coordSys = seriesModel.coordinateSystem;
         if (coordSys.type === 'globe') {
@@ -163,4 +163,4 @@ echarts.registerLayout(function (ecModel, api) {
             layoutOnPlane(seriesModel, coordSys, [0, 0, 1]);
         }
     });
-});
+};

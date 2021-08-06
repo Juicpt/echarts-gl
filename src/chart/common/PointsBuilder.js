@@ -1,10 +1,12 @@
-import echarts from 'echarts/lib/echarts';
+import * as echarts from 'echarts/lib/echarts';
 import graphicGL from '../../util/graphicGL';
 import spriteUtil from '../../util/sprite';
 import PointsMesh from './PointsMesh';
 import LabelsBuilder from '../../component/common/LabelsBuilder';
 import Matrix4 from 'claygl/src/math/Matrix4';
 import retrieve from '../../util/retrieve';
+import { getItemVisualColor, getItemVisualOpacity } from '../../util/visual';
+import { getVisualColor, getVisualOpacity } from '../../util/visual';
 
 var SDF_RANGE = 20;
 
@@ -107,8 +109,8 @@ PointsBuilder.prototype = {
             material.undefine('VERTEX_SIZE');
             material.undefine('VERTEX_COLOR');
 
-            var color = data.getVisual('color');
-            var opacity = data.getVisual('opacity');
+            var color = getVisualColor(data);
+            var opacity = getVisualOpacity(data);
             graphicGL.parseColor(color, rgbaArr);
             rgbaArr[3] *= opacity;
 
@@ -149,8 +151,8 @@ PointsBuilder.prototype = {
             }
 
             if (!largeMode) {
-                var color = data.getItemVisual(i, 'color');
-                var opacity = data.getItemVisual(i, 'opacity');
+                var color = getItemVisualColor(data, i);
+                var opacity = getItemVisualOpacity(data, i);
                 graphicGL.parseColor(color, rgbaArr);
                 rgbaArr[3] *= opacity;
                 attributes.color.set(i, rgbaArr);
@@ -213,6 +215,10 @@ PointsBuilder.prototype = {
 
     showLabels: function () {
         this.rootNode.add(this._labelsBuilder.getMesh());
+    },
+
+    dispose: function () {
+        this._labelsBuilder.dispose();
     },
 
     _updateSymbolSprite: function (seriesModel, itemStyle, symbolInfo, dpr) {
@@ -415,11 +421,11 @@ PointsBuilder.prototype = {
         var emphasisColor = emphasisItemStyleModel.get('color');
         var emphasisOpacity = emphasisItemStyleModel.get('opacity');
         if (emphasisColor == null) {
-            var color = data.getItemVisual(dataIndex, 'color');
+            var color = getItemVisualColor(data, dataIndex);
             emphasisColor = echarts.color.lift(color, -0.4);
         }
         if (emphasisOpacity == null) {
-            emphasisOpacity = data.getItemVisual(dataIndex, 'opacity');
+            emphasisOpacity = getItemVisualOpacity(data, dataIndex);
         }
         var colorArr = graphicGL.parseColor(emphasisColor);
         colorArr[3] *= emphasisOpacity;
@@ -434,8 +440,8 @@ PointsBuilder.prototype = {
         if (dataIndex > this._endDataIndex || dataIndex < this._startDataIndex) {
             return;
         }
-        var color = data.getItemVisual(dataIndex, 'color');
-        var opacity = data.getItemVisual(dataIndex, 'opacity');
+        var color = getItemVisualColor(data, dataIndex);
+        var opacity = getItemVisualOpacity(data, dataIndex);
 
         var colorArr = graphicGL.parseColor(color);
         colorArr[3] *= opacity;
@@ -537,7 +543,7 @@ PointsBuilder.prototype = {
             if (!(symbolSize instanceof Array)) {
                 // Ignore NaN value.
                 if (isNaN(symbolSize)) {
-                    return;
+                    continue;
                 }
 
                 currentSymbolAspect = 1;
@@ -547,7 +553,7 @@ PointsBuilder.prototype = {
                 currentSymbolAspect = symbolSize[0] / symbolSize[1];
                 maxSymbolSize = Math.max(Math.max(symbolSize[0], symbolSize[1]), maxSymbolSize);
             }
-            if (__DEV__) {
+            if (process.env.NODE_ENV !== 'production') {
                 if (symbolAspect != null && Math.abs(currentSymbolAspect - symbolAspect) > 0.05) {
                     differentSymbolAspect = true;
                 }
@@ -559,7 +565,7 @@ PointsBuilder.prototype = {
             symbolAspect = currentSymbolAspect;
         }
 
-        if (__DEV__) {
+        if (process.env.NODE_ENV !== 'production') {
             if (differentSymbolAspect) {
                 console.warn('Different symbol width / height ratio will be ignored.');
             }

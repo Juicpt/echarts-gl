@@ -1,15 +1,17 @@
-import echarts from 'echarts/lib/echarts';
+import * as echarts from 'echarts/lib/echarts';
 import formatUtil from '../../util/format';
 import formatTooltip from '../common/formatTooltip';
 import createList from '../common/createList';
 
-echarts.extendSeriesModel({
+export default echarts.SeriesModel.extend({
 
     type: 'series.scatter3D',
 
     dependencies: ['globe', 'grid3D', 'geo3D'],
 
-    visualColorAccessPath: 'itemStyle.color',
+    visualStyleAccessPath: 'itemStyle',
+
+    hasSymbolVisual: true,
 
     getInitialData: function (option, ecModel) {
         return createList(this);

@@ -1,12 +1,11 @@
-import echarts from 'echarts/lib/echarts';
+import * as echarts from 'echarts/lib/echarts';
 import graphicGL from '../../util/graphicGL';
 import ViewGL from '../../core/ViewGL';
 import PointsBuilder from '../common/PointsBuilder';
 
 import GLViewHelper from '../common/GLViewHelper';
-import retrieve from '../../util/retrieve';
 
-echarts.extendChartView({
+export default echarts.ChartView.extend({
 
     type: 'scatterGL',
 
@@ -111,6 +110,9 @@ echarts.extendChartView({
 
     dispose: function () {
         this.groupGL.removeAll();
+        this._pointsBuilderList.forEach(function (pointsBuilder) {
+            pointsBuilder.dispose();
+        });
     },
 
     remove: function () {

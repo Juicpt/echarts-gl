@@ -1,6 +1,7 @@
 // TODO orthographic camera
 
-import echarts from 'echarts/lib/echarts';
+import * as echarts from 'echarts/lib/echarts';
+import {createTextStyle} from 'echarts/lib/label/labelStyle';
 import graphicGL from '../../util/graphicGL';
 import OrbitControl from '../../util/OrbitControl';
 import Lines3DGeometry from '../../util/geometry/Lines3D';
@@ -15,12 +16,6 @@ import LabelsMesh from '../../util/mesh/LabelsMesh';
 import lines3DGLSL from '../../util/shader/lines3D.glsl.js';
 graphicGL.Shader.import(lines3DGLSL);
 
-['x', 'y', 'z'].forEach(function (dim) {
-    echarts.extendComponentView({
-        type: dim + 'Axis3D'
-    });
-});
-
 var dimIndicesMap = {
     // Left to right
     x: 0,
@@ -30,7 +25,7 @@ var dimIndicesMap = {
     z: 1
 };
 
-export default echarts.extendComponentView({
+export default echarts.ComponentView.extend({
 
     type: 'grid3D',
 
@@ -544,7 +539,7 @@ export default echarts.extendComponentView({
             }
             var val = data[idx];
             var formatter = labelModel.get('formatter');
-            var text = axis.scale.getLabel(val);
+            var text = axis.scale.getLabel({ value: val });
             if (formatter != null) {
                 text = formatter(text, data);
             }
@@ -555,15 +550,16 @@ export default echarts.extendComponentView({
                 }
             }
 
-            var textStyleModel = labelModel.getModel('textStyle');
-            var labelColor = textStyleModel.get('color');
-            var textEl = new echarts.graphic.Text();
-            echarts.graphic.setTextStyle(textEl.style, textStyleModel, {
-                text: text,
-                textFill: labelColor || lineColor,
-                textAlign: 'left',
-                textVerticalAlign: 'top'
+            var labelColor = labelModel.get('color');
+            var textEl = new echarts.graphic.Text({
+                style: createTextStyle(labelModel, {
+                    text: text,
+                    fill: labelColor || lineColor,
+                    align: 'left',
+                    verticalAlign: 'top'
+                })
             });
+
             var coords = axisPointerLabelsSurface.add(textEl);
             var rect = textEl.getBoundingRect();
             var dpr = this._api.getDevicePixelRatio();
@@ -585,5 +581,7 @@ export default echarts.extendComponentView({
     dispose: function () {
         this.groupGL.removeAll();
         this._control.dispose();
+        this._axisLabelSurface.dispose();
+        this._axisPointerLabelsSurface.dispose();
     }
 });

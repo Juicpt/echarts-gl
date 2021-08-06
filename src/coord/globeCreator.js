@@ -1,6 +1,6 @@
 import Globe from './globe/Globe';
-import echarts from 'echarts/lib/echarts';
-import layoutUtil from 'echarts/lib/util/layout';
+import * as echarts from 'echarts/lib/echarts';
+import {getLayoutRect} from 'echarts/lib/util/layout';
 import ViewGL from '../core/ViewGL';
 import retrieve from '../util/retrieve';
 import graphicGL from '../util/graphicGL';
@@ -31,7 +31,7 @@ function resizeGlobe(globeModel, api) {
     // Use left/top/width/height
     var boxLayoutOption = globeModel.getBoxLayoutParams();
 
-    var viewport = layoutUtil.getLayoutRect(boxLayoutOption, {
+    var viewport = getLayoutRect(boxLayoutOption, {
         width: api.getWidth(),
         height: api.getHeight()
     });
@@ -51,7 +51,7 @@ function resizeGlobe(globeModel, api) {
 
 function updateGlobe(ecModel, api) {
 
-    var altitudeDataExtent = [Infinity, -Infinity]
+    var altitudeDataExtent = [Infinity, -Infinity];
 
     ecModel.eachSeries(function (seriesModel) {
         if (seriesModel.coordinateSystem !== this) {
@@ -118,7 +118,7 @@ var globeCreator = {
 
         ecModel.eachSeries(function (seriesModel) {
             if (seriesModel.get('coordinateSystem') === 'globe') {
-                var globeModel = seriesModel.getReferringComponents('globe')[0];
+                var globeModel = seriesModel.getReferringComponents('globe').models[0];
                 if (!globeModel) {
                     globeModel = ecModel.getComponent('globe');
                 }
@@ -173,7 +173,5 @@ var globeCreator = {
         return globeList;
     }
 };
-
-echarts.registerCoordinateSystem('globe', globeCreator);
 
 export default globeCreator;

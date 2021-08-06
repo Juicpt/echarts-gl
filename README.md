@@ -1,40 +1,48 @@
 # ECHARTS-GL
 
-<a href="http://echarts.baidu.com">
-    <img style="vertical-align: top;" src="./asset/logo.png?raw=true" alt="logo" height="50px">
-</a>
-
-
-ECharts-GL is an extension pack of [echarts](http://echarts.baidu.com), which providing 3D plots, globe visualization and WebGL acceleration.
+ECharts-GL is an extension pack of [Apache ECharts](http://echarts.apache.org/), which providing 3D plots, globe visualization and WebGL acceleration.
 
 
 ## Docs
 
-+ [Option Manual](https://ecomfe.github.io/echarts-doc/public/cn/option-gl.html)
++ [Option Manual](https://echarts.apache.org/zh/option-gl.html)
 
-+ [Gallery](http://gallery.echartsjs.com/explore.html#tags=echarts-gl)
++ [Gallery](https://www.makeapie.com/explore.html#tags=echarts-gl)
 
 ## Installing
 
-Use npm and webpack
+###  npm and webpack
 
 ```bash
 npm install echarts
 npm install echarts-gl
 ```
 
+#### Import all
 ```js
-require('echarts');
-require('echarts-gl');
+import * as echarts from 'echarts';
+import 'echarts-gl';
 ```
 
-You can also use the released bundle. Which is [Universal Module Definition](https://github.com/umdjs/umd), supports AMD, CommonJS and vanilla environments.
+#### Minimal Import
+```js
+import * as echarts from 'echarts/core';
+import { Scatter3DChart } from 'echarts-gl/charts';
+import { Grid3DComponent } from 'echarts-gl/components';
 
-For example, load it by script tag.
+echarts.use([Scatter3DChart, Grid3DComponent]);
+```
+
+### Include by scripts
 ```html
-<script src="dist/echarts.min.js"></script>
-<script src="dist/echarts-gl.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts-gl/dist/echarts-gl.min.js"></script>
 ```
+
+NOTE:
+
+ECharts GL 2.x is compatible with ECharts 5.x.
+ECharts GL 1.x is compatible with ECharts 4.x.
 
 ## Basic Usage
 
@@ -55,16 +63,6 @@ chart.setOption({
     }]
 })
 ```
-
-## Dependencies
-
-Built on top of
-
-+ [ECharts](https://github.com/ecomfe/echarts)
-
-+ Canvas library [zrender](https://github.com/ecomfe/zrender)
-
-+ WebGL library [claygl](https://github.com/pissang/claygl)。
 
 ## License
 

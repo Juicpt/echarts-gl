@@ -1,4 +1,4 @@
-import echarts from 'echarts/lib/echarts';
+import * as echarts from 'echarts/lib/echarts';
 
 export default {
 
@@ -16,7 +16,7 @@ export default {
             }
         }
         if (!geoJson) {
-            if (__DEV__) {
+            if (process.env.NODE_ENV !== 'production') {
                 console.error('Map ' + mapData + ' not exists. You can download map file on http://echarts.baidu.com/download-map.html');
                 if (!geoJson.features) {
                     console.error('Invalid GeoJSON for map3D');

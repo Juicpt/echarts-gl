@@ -6,7 +6,7 @@ import Shader from 'claygl/src/Shader';
 import Material from 'claygl/src/Material';
 import Node3D from 'claygl/src/Node';
 import Geometry from 'claygl/src/Geometry';
-import echarts from 'echarts/lib/echarts';
+import * as echarts from 'echarts/lib/echarts';
 import Scene from 'claygl/src/Scene';
 import LRUCache from 'zrender/lib/core/LRU';
 import textureUtil from 'claygl/src/util/texture';
@@ -57,7 +57,7 @@ import realisticGLSL from './shader/realistic.glsl.js';
 import hatchingGLSL from './shader/hatching.glsl.js';
 import shadowGLSL from './shader/shadow.glsl.js';
 
-echarts.util.extend(Node3D.prototype, animatableMixin);
+Object.assign(Node3D.prototype, animatableMixin);
 
 Shader.import(utilGLSL);
 Shader.import(prezGLSL);
@@ -191,17 +191,22 @@ graphicGL.BoundingBox = BoundingBox;
 graphicGL.Frustum = Frustum;
 
 // Texture utilities
+var blankImage = null;
 
-var blankImage = textureUtil.createBlank('rgba(255,255,255,0)').image;
+function getBlankImage() {
+    if (blankImage !== null) {
+        return blankImage;
+    }
+    blankImage = textureUtil.createBlank('rgba(255,255,255,0)').image;
+    return blankImage;
+}
 
 
 function nearestPowerOfTwo(val) {
     return Math.pow(2, Math.round(Math.log(val) / Math.LN2));
 }
 function convertTextureToPowerOfTwo(texture) {
-    if ((texture.wrapS === Texture.REPEAT || texture.wrapT === Texture.REPEAT)
-     && texture.image
-     ) {
+    if ((texture.wrapS === Texture.REPEAT || texture.wrapT === Texture.REPEAT) && texture.image) {
         // var canvas = document.createElement('canvas');
         var width = nearestPowerOfTwo(texture.width);
         var height = nearestPowerOfTwo(texture.height);
@@ -339,9 +344,10 @@ graphicGL.loadTexture = function (imgValue, api, textureOpts, cb) {
                     });
                     textureObj.callbacks = null;
                 };
+                originalImage.crossOrigin = 'Anonymous';
                 originalImage.src = imgValue;
                 // Use blank image as place holder.
-                texture.image = blankImage;
+                texture.image = getBlankImage();
 
                 textureCache.put(prefix + imgValue, textureObj);
             }
@@ -374,11 +380,11 @@ graphicGL.createAmbientCubemap = function (opt, renderer, api, cb) {
     }, function () {
         // TODO Performance when multiple view
         ambientCubemap.cubemap.flipY = false;
-        if (__DEV__) {
+        if (process.env.NODE_ENV !== 'production') {
             var time = Date.now();
         }
         ambientCubemap.prefilter(renderer, 32);
-        if (__DEV__) {
+        if (process.env.NODE_ENV !== 'production') {
             var dTime = Date.now() - time;
             console.log('Prefilter environment map: ' + dTime + 'ms');
         }
@@ -486,13 +492,16 @@ graphicGL.getShadowResolution = function (shadowQuality) {
 /**
  * Shading utilities
  */
-graphicGL.COMMON_SHADERS = ['lambert', 'color', 'realistic', 'hatching'];
+graphicGL.COMMON_SHADERS = ['lambert', 'color', 'realistic', 'hatching', 'shadow'];
 
 /**
  * Create shader including vertex and fragment
  * @param {string} prefix.
  */
 graphicGL.createShader = function (prefix) {
+    if (prefix === 'ecgl.shadow') {
+        prefix = 'ecgl.displayShadow';
+    }
     var vertexShaderStr = Shader.source(prefix + '.vertex');
     var fragmentShaderStr = Shader.source(prefix + '.fragment');
     if (!vertexShaderStr) {
@@ -603,7 +612,7 @@ graphicGL.setMaterialFromModel = function (shading, material, model, api) {
     else if (shading === 'hatching') {
         var tams = materialModel.get('hatchingTextures') || [];
         if (tams.length < 6) {
-            if (__DEV__) {
+            if (process.env.NODE_ENV !== 'production') {
                 console.error('Invalid hatchingTextures.');
             }
         }

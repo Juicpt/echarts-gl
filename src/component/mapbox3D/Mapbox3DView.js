@@ -1,4 +1,4 @@
-import echarts from 'echarts/lib/echarts';
+import * as echarts from 'echarts/lib/echarts';
 import Mapbox3DLayer from './Mapbox3DLayer';
 import SceneHelper from '../common/SceneHelper';
 import graphicGL from '../../util/graphicGL';
@@ -9,7 +9,7 @@ graphicGL.Shader.import(displayShadowGLSL);
 
 var TILE_SIZE = 512;
 
-export default echarts.extendComponentView({
+export default echarts.ComponentView.extend({
 
     type: 'mapbox3D',
 

@@ -1,8 +1,8 @@
-import echarts from 'echarts/lib/echarts';
+import * as echarts from 'echarts/lib/echarts';
 import graphicGL from '../../util/graphicGL';
-import retrieve from '../../util/retrieve';
 import glmatrix from 'claygl/src/dep/glmatrix';
 import trianglesSortMixin from '../../util/geometry/trianglesSortMixin';
+import { getItemVisualColor, getItemVisualOpacity } from '../../util/visual';
 
 var vec3 = glmatrix.vec3;
 
@@ -10,7 +10,7 @@ function isPointsNaN(pt) {
     return isNaN(pt[0]) || isNaN(pt[1]) || isNaN(pt[2]);
 }
 
-echarts.extendChartView({
+export default echarts.ChartView.extend({
 
     type: 'surface',
 
@@ -58,7 +58,7 @@ echarts.extendChartView({
         var dataShape = seriesModel.get('dataShape');
         if (!dataShape) {
             dataShape = this._getDataShape(data, isParametric);
-            if (__DEV__) {
+            if (process.env.NODE_ENV !== 'production') {
                 if (seriesModel.get('data')) {
                     console.warn('dataShape is not provided. Guess it is ', dataShape);
                 }
@@ -87,8 +87,10 @@ echarts.extendChartView({
 
     _updateAnimation: function (seriesModel) {
         graphicGL.updateVertexAnimation(
-            [['prevPosition', 'position'],
-            ['prevNormal', 'normal']],
+            [
+                ['prevPosition', 'position'],
+                ['prevNormal', 'normal']
+            ],
             this._prevSurfaceMesh,
             this._surfaceMesh,
             seriesModel
@@ -114,7 +116,7 @@ echarts.extendChartView({
         mesh.geometry.createAttribute('prevPosition', 'float', 3);
         mesh.geometry.createAttribute('prevNormal', 'float', 3);
 
-        echarts.util.extend(mesh.geometry, trianglesSortMixin);
+        Object.assign(mesh.geometry, trianglesSortMixin);
 
         return mesh;
     },
@@ -279,9 +281,9 @@ echarts.extendChartView({
 
             for (var i = 0; i < data.count(); i++) {
                 if (data.hasValue(i)) {
-                    var rgbaArr = graphicGL.parseColor(data.getItemVisual(i, 'color'));
-                    var opacity = data.getItemVisual(i, 'opacity');
-                    rgbaArr[3] *= opacity;
+                    var rgbaArr = graphicGL.parseColor(getItemVisualColor(data, i));
+                    var opacity = getItemVisualOpacity(data, i);
+                    opacity != null && (rgbaArr[3] *= opacity);
                     if (rgbaArr[3] < 0.99) {
                         isTransparent = true;
                     }
@@ -391,9 +393,9 @@ echarts.extendChartView({
             for (var i = 0; i < data.count(); i++) {
                 uvArr[0] = (i % column) / (column - 1);
                 uvArr[1] = Math.floor(i / column) / (row - 1);
-                var rgbaArr = graphicGL.parseColor(data.getItemVisual(i, 'color'));
-                var opacity = data.getItemVisual(i, 'opacity');
-                rgbaArr[3] *= opacity;
+                var rgbaArr = graphicGL.parseColor(getItemVisualColor(data, i));
+                var opacity = getItemVisualOpacity(data, i);
+                opacity != null && (rgbaArr[3] *= opacity);
                 if (rgbaArr[3] < 0.99) {
                     isTransparent = true;
                 }
@@ -448,7 +450,7 @@ echarts.extendChartView({
             var x = data.get(rowDim, i);
             if (x < prevX) {
                 if (prevColumnCount && prevColumnCount !== columnCount) {
-                    if (__DEV__) {
+                    if (process.env.NODE_ENV !== 'production') {
                         mayInvalid = true;
                     }
                 }

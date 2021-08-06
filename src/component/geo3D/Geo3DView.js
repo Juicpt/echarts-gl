@@ -1,11 +1,11 @@
 import Geo3DBuilder from '../common/Geo3DBuilder';
-import echarts from 'echarts/lib/echarts';
+import * as echarts from 'echarts/lib/echarts';
 
 import graphicGL from '../../util/graphicGL';
 import OrbitControl from '../../util/OrbitControl';
 import SceneHelper from '../common/SceneHelper';
 
-export default echarts.extendComponentView({
+export default echarts.ComponentView.extend({
 
     type: 'geo3D',
 
@@ -91,5 +91,6 @@ export default echarts.extendComponentView({
 
     dispose: function () {
         this._control.dispose();
+        this._geo3DBuilder.dispose();
     }
 });

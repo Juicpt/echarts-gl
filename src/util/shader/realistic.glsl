@@ -93,6 +93,12 @@ uniform float roughness : 0.5;
 
 uniform mat4 viewInverse : VIEWINVERSE;
 
+#ifdef ATMOSPHERE_ENABLED
+uniform mat4 viewTranspose: VIEWTRANSPOSE;
+uniform vec3 glowColor;
+uniform float glowPower;
+#endif
+
 #ifdef AMBIENT_LIGHT_COUNT
 @import clay.header.ambient_light
 #endif
@@ -272,6 +278,11 @@ void main()
 
     gl_FragColor.rgb = albedoColor.rgb * diffuseTerm + specularTerm;
     gl_FragColor.a = albedoColor.a;
+
+#ifdef ATMOSPHERE_ENABLED
+    float atmoIntensity = pow(1.0 - dot(v_Normal, (viewTranspose * vec4(0.0, 0.0, 1.0, 0.0)).xyz), glowPower);
+    gl_FragColor.rgb += glowColor * atmoIntensity;
+#endif
 
 #ifdef SRGB_ENCODE
     gl_FragColor = linearTosRGB(gl_FragColor);

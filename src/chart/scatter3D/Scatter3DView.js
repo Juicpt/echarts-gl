@@ -1,13 +1,15 @@
-import echarts from 'echarts/lib/echarts';
+import * as echarts from 'echarts/lib/echarts';
 import graphicGL from '../../util/graphicGL';
 import retrieve from '../../util/retrieve';
 import format from '../../util/format';
 
 import PointsBuilder from '../common/PointsBuilder';
 
-echarts.extendChartView({
+export default echarts.ChartView.extend({
 
     type: 'scatter3D',
+
+    hasSymbolVisual: true,
 
     __ecgl__: true,
 
@@ -41,7 +43,7 @@ echarts.extendChartView({
             pointsBuilder.updateView(coordSys.viewGL.camera);
         }
         else {
-            if (__DEV__) {
+            if (process.env.NODE_ENV !== 'production') {
                 throw new Error('Invalid coordinate system');
             }
         }
@@ -54,7 +56,7 @@ echarts.extendChartView({
             this._camera = coordSys.viewGL.camera;
         }
         else {
-            if (__DEV__) {
+            if (process.env.NODE_ENV !== 'production') {
                 throw new Error('Invalid coordinate system');
             }
         }
@@ -120,6 +122,9 @@ echarts.extendChartView({
     },
 
     dispose: function () {
+        this._pointsBuilderList.forEach(function (pointsBuilder) {
+            pointsBuilder.dispose();
+        });
         this.groupGL.removeAll();
     },
 

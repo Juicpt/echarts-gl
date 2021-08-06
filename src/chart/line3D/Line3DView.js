@@ -1,11 +1,12 @@
-import echarts from 'echarts/lib/echarts';
+import * as echarts from 'echarts/lib/echarts';
 import graphicGL from '../../util/graphicGL';
 import retrieve from '../../util/retrieve';
 import Lines3DGeometry from '../../util/geometry/Lines3D';
 import Matrix4 from 'claygl/src/math/Matrix4';
 import Vector3 from 'claygl/src/math/Vector3';
-import lineContain from 'zrender/lib/contain/line';
+import * as lineContain from 'zrender/lib/contain/line';
 import glmatrix from 'claygl/src/dep/glmatrix';
+import { getItemVisualColor, getItemVisualOpacity } from '../../util/visual';
 
 import lines3DGLSL from '../../util/shader/lines3D.glsl.js';
 
@@ -13,7 +14,7 @@ var vec3 = glmatrix.vec3;
 
 graphicGL.Shader.import(lines3DGLSL);
 
-export default echarts.extendChartView({
+export default echarts.ChartView.extend({
 
     type: 'line3D',
 
@@ -85,8 +86,8 @@ export default echarts.extendChartView({
         var hasTransparent = false;
 
         data.each(function (idx) {
-            var color = data.getItemVisual(idx, 'color');
-            var opacity = data.getItemVisual(idx, 'opacity');
+            var color = getItemVisualColor(data, idx);
+            var opacity = getItemVisualOpacity(data, idx);
             if (opacity == null) {
                 opacity = 1;
             }

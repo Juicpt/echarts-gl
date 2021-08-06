@@ -1,4 +1,4 @@
-import echarts from 'echarts/lib/echarts';
+import * as echarts from 'echarts/lib/echarts';
 import componentShadingMixin from '../../component/common/componentShadingMixin';
 
 function transformPolygon(coordSys, poly) {
@@ -9,7 +9,7 @@ function transformPolygon(coordSys, poly) {
     return ret;
 }
 
-var Polygons3DSeries = echarts.extendSeriesModel({
+var Polygons3DSeries = echarts.SeriesModel.extend({
 
     type: 'series.polygons3D',
 

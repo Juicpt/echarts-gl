@@ -1,11 +1,11 @@
-import echarts from 'echarts/lib/echarts';
+import * as echarts from 'echarts/lib/echarts';
 
 import graphicGL from '../../util/graphicGL';
 import OrbitControl from '../../util/OrbitControl';
 import SceneHelper from '../../component/common/SceneHelper';
 import Geo3DBuilder from '../../component/common/Geo3DBuilder';
 
-export default echarts.extendChartView({
+export default echarts.ChartView.extend({
 
     type: 'map3D',
 
@@ -106,5 +106,6 @@ export default echarts.extendChartView({
     dispose: function () {
         this.groupGL.removeAll();
         this._control.dispose();
+        this._geo3DBuilder.dispose();
     }
 });

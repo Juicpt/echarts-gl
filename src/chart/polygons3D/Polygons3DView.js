@@ -1,8 +1,8 @@
-import echarts from 'echarts/lib/echarts';
+import * as echarts from 'echarts/lib/echarts';
 import Geo3DBuilder from '../../component/common/Geo3DBuilder';
 import graphicGL from '../../util/graphicGL';
 
-echarts.extendChartView({
+export default echarts.ChartView.extend({
 
     type: 'polygons3D',
 
@@ -88,5 +88,8 @@ echarts.extendChartView({
 
     dispose: function () {
         this.groupGL.removeAll();
+        this._geo3DBuilderList.forEach(function (geo3DBuilder) {
+            geo3DBuilder.dispose();
+        })
     }
 });

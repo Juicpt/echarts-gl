@@ -1,11 +1,11 @@
-import echarts from 'echarts/lib/echarts';
+import * as echarts from 'echarts/lib/echarts';
 import componentViewControlMixin from '../common/componentViewControlMixin';
 import componentPostEffectMixin from '../common/componentPostEffectMixin';
 import componentLightMixin from '../common/componentLightMixin';
 import componentShadingMixin from '../common/componentShadingMixin';
 import geo3DModelMixin from '../../coord/geo3D/geo3DModelMixin';
 
-var Geo3DModel = echarts.extendComponentModel({
+var Geo3DModel = echarts.ComponentModel.extend({
 
     type: 'geo3D',
 
@@ -18,9 +18,10 @@ var Geo3DModel = echarts.extendComponentModel({
 
         option.regions = this.getFilledRegions(option.regions, option.map);
 
-        var dimensions = echarts.helper.completeDimensions(['value'], option.data, {
-            encodeDef: this.get('encode'),
-            dimsDef: this.get('dimensions')
+        var dimensions = echarts.helper.createDimensions(option.data || [], {
+            coordDimensions: ['value'],
+            encodeDefine: this.get('encode'),
+            dimensionsDefine: this.get('dimensions')
         });
         var list = new echarts.List(dimensions, this);
         list.initData(option.regions);
@@ -61,7 +62,7 @@ var Geo3DModel = echarts.extendComponentModel({
      */
     getFormattedLabel: function (dataIndex, status) {
         var name = this._data.getName(dataIndex);
-        var regionModel = this.getRegionModel(name);
+        var regionModel = this.getRegionModel(dataIndex);
         var formatter = regionModel.get(status === 'normal' ? ['label', 'formatter'] : ['emphasis', 'label', 'formatter']);
         if (formatter == null) {
             formatter = regionModel.get(['label', 'formatter']);

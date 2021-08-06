@@ -1,13 +1,14 @@
-import echarts from 'echarts/lib/echarts';
+import * as echarts from 'echarts/lib/echarts';
 import { concatArray } from 'zrender/lib/core/util';
 
-var LinesSeries = echarts.extendSeriesModel({
+var LinesGLSeries = echarts.SeriesModel.extend({
 
     type: 'series.linesGL',
 
     dependencies: ['grid', 'geo'],
 
-    visualColorAccessPath: 'lineStyle.color',
+    visualStyleAccessPath: 'lineStyle',
+    visualDrawType: 'stroke',
 
     streamEnabled: true,
 
@@ -19,7 +20,7 @@ var LinesSeries = echarts.extendSeriesModel({
             option.data = new Float32Array(result.count);
         }
 
-        LinesSeries.superApply(this, 'init', arguments);
+        LinesGLSeries.superApply(this, 'init', arguments);
     },
 
     mergeOption: function (option) {
@@ -30,7 +31,7 @@ var LinesSeries = echarts.extendSeriesModel({
             option.data = new Float32Array(result.count);
         }
 
-        LinesSeries.superApply(this, 'mergeOption', arguments);
+        LinesGLSeries.superApply(this, 'mergeOption', arguments);
     },
 
     appendData: function (params) {
@@ -55,7 +56,7 @@ var LinesSeries = echarts.extendSeriesModel({
         var coords = (itemModel.option instanceof Array)
             ? itemModel.option : itemModel.getShallow('coords');
 
-        if (__DEV__) {
+        if (process.env.NODE_ENV !== 'production') {
             if (!(coords instanceof Array && coords.length > 0 && coords[0] instanceof Array)) {
                 throw new Error('Invalid coords ' + JSON.stringify(coords) + '. Lines must have 2d coords array in data item.');
             }
@@ -123,7 +124,7 @@ var LinesSeries = echarts.extendSeriesModel({
                     coordsStorage[coordsCursor++] = y;
 
                     if (i > len) {
-                        if (__DEV__) {
+                        if (process.env.NODE_ENV !== 'production') {
                             throw new Error('Invalid data format.');
                         }
                     }
@@ -198,3 +199,5 @@ var LinesSeries = echarts.extendSeriesModel({
         }
     }
 });
+
+export default LinesGLSeries;

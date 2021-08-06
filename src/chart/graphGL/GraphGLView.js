@@ -1,5 +1,5 @@
-import echarts from 'echarts/lib/echarts';
-import layoutUtil from 'echarts/lib/util/layout';
+import * as echarts from 'echarts/lib/echarts';
+import {getLayoutRect} from 'echarts/lib/util/layout';
 import graphicGL from '../../util/graphicGL';
 import ViewGL from '../../core/ViewGL';
 import Lines2DGeometry from '../../util/geometry/Lines2D';
@@ -8,6 +8,7 @@ import ForceAtlas2GPU from './ForceAtlas2GPU';
 import ForceAtlas2 from './ForceAtlas2';
 import requestAnimationFrame from 'zrender/lib/animation/requestAnimationFrame';
 import glmatrix from 'claygl/src/dep/glmatrix';
+import { getItemVisualColor, getItemVisualOpacity } from '../../util/visual';
 
 var vec2 = glmatrix.vec2;
 
@@ -20,7 +21,7 @@ graphicGL.Shader.import(lines2DGLSL);
 
 var globalLayoutId = 1;
 
-echarts.extendChartView({
+export default echarts.ChartView.extend({
 
     type: 'graphGL',
 
@@ -137,7 +138,7 @@ echarts.extendChartView({
                 this._pointsBuilder.highlightOnMouseover = false;
             }
             else {
-                if (__DEV__) {
+                if (process.env.NODE_ENV !== 'production') {
                     console.warn('Unkown focusNodeAdjacencyOn value \s' + focusNodeAdjacencyOn);
                 }
             }
@@ -215,10 +216,10 @@ echarts.extendChartView({
             geometry.attributes.node.set(offset, layoutInstance.getNodeUV(edge.node1));
             geometry.attributes.node.set(offset + 1, layoutInstance.getNodeUV(edge.node2));
 
-            var color = edgeData.getItemVisual(edge.dataIndex, 'color');
+            var color = getItemVisualColor(edgeData, edge.dataIndex);
             var colorArr = graphicGL.parseColor(color);
             colorArr[3] *= retrieve.firstNotNull(
-                edgeData.getItemVisual(edge.dataIndex, 'opacity'), 1
+                getItemVisualOpacity(edgeData, edge.dataIndex), 1
             );
             geometry.attributes.color.set(offset, colorArr);
             geometry.attributes.color.set(offset + 1, colorArr);
@@ -254,9 +255,9 @@ echarts.extendChartView({
             p1[0] = points[idx2];
             p1[1] = points[idx2 + 1];
 
-            var color = edgeData.getItemVisual(edge.dataIndex, 'color');
+            var color = getItemVisualColor(edgeData, edge.dataIndex);
             var colorArr = graphicGL.parseColor(color);
-            colorArr[3] *= retrieve.firstNotNull(edgeData.getItemVisual(edge.dataIndex, 'opacity'), 1);
+            colorArr[3] *= retrieve.firstNotNull(getItemVisualOpacity(edgeData, edge.dataIndex), 1);
             var itemModel = edgeData.getItemModel(edge.dataIndex);
             var lineWidth = retrieve.firstNotNull(itemModel.get(lineWidthQuery), 1) * this._api.getDevicePixelRatio();
 
@@ -286,13 +287,13 @@ echarts.extendChartView({
         var graph = seriesModel.getGraph();
 
         var boxLayoutOption = seriesModel.getBoxLayoutParams();
-        var viewport = layoutUtil.getLayoutRect(boxLayoutOption, {
+        var viewport = getLayoutRect(boxLayoutOption, {
             width: api.getWidth(),
             height: api.getHeight()
         });
 
         if (layout === 'force') {
-            if (__DEV__) {
+            if (process.env.NODE_ENV !== 'production') {
                 console.warn('Currently only forceAtlas2 layout supported.');
             }
             layout = 'forceAtlas2';
@@ -444,7 +445,7 @@ echarts.extendChartView({
         var layoutModel = this._model.getModel('forceAtlas2');
 
         if (!layoutInstance) {
-            if (__DEV__) {
+            if (process.env.NODE_ENV !== 'production') {
                 console.error('None layout don\'t have startLayout action');
             }
             return;
@@ -719,6 +720,8 @@ echarts.extendChartView({
 
         // Stop layout.
         this._layoutId = -1;
+
+        this._pointsBuilder.dispose();
     },
 
     remove: function () {
